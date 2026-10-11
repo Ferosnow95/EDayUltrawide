@@ -13,6 +13,10 @@ Windows only. Single-player / offline only (see [Anti-cheat](#anti-cheat)).
 |---|---|
 | ![Before](docs/before.jpg) | ![After](docs/after.jpg) |
 
+**Another cutscene (32:9, with the fix)**
+
+![Another cutscene, with the fix](docs/after-2.jpg)
+
 ## Features
 - **Removes the black bars** in cutscenes on 32:9 and other screens wider than 21:9.
 - **Fixes the cropping:** the cutscene camera keeps the same top-to-bottom view as 16:9 (Hor+), so you see more on the sides and nothing is cut off at the top or bottom. The slight downward tilt that wide screens get is corrected too, so faces and scenes aren't sitting low in the frame.
