@@ -1,4 +1,4 @@
-# Gears of War: E-Day (Ultrawide & FOV Fix) — Xbox Game Pass
+# Gears of War: E-Day (Ultrawide & FOV Fix) :  Xbox Game Pass
 
 [![Latest release](https://img.shields.io/github/v/release/Ferosnow95/EDayUltrawide)](https://github.com/Ferosnow95/EDayUltrawide/releases)
 [![Downloads](https://img.shields.io/github/downloads/Ferosnow95/EDayUltrawide/total.svg)](https://github.com/Ferosnow95/EDayUltrawide/releases)
