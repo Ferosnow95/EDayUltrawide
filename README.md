@@ -12,14 +12,14 @@ Windows only. Single-player / offline only (see [Anti-cheat](#anti-cheat)).
 <table>
 <tr><th width="50%">Before (stock, 32:9)</th><th width="50%">After (this fix, 32:9)</th></tr>
 <tr>
-<td><img src="docs/before.jpg" alt="Before" width="100%"></td>
-<td><img src="docs/after.jpg" alt="After" width="100%"></td>
+<td><img src="docs/before.jpg?v=2" alt="Before" width="100%"></td>
+<td><img src="docs/after.jpg?v=2" alt="After" width="100%"></td>
 </tr>
 </table>
 
 **Another cutscene (32:9, with the fix)**
 
-![Another cutscene, with the fix](docs/after-2.jpg)
+![Another cutscene, with the fix](docs/after-2.jpg?v=2)
 
 ## Features
 - **Removes the black bars** in cutscenes on 32:9 and other screens wider than 21:9.
