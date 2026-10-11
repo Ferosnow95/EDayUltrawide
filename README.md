@@ -9,9 +9,13 @@ A plain and simple mod that fixes Gears of War: E-Day on super-ultrawide screens
 
 Windows only. Single-player / offline only (see [Anti-cheat](#anti-cheat)).
 
-| Before (stock, 32:9) | After (this fix, 32:9) |
-|---|---|
-| ![Before](docs/before.jpg) | ![After](docs/after.jpg) |
+<table>
+<tr><th width="50%">Before (stock, 32:9)</th><th width="50%">After (this fix, 32:9)</th></tr>
+<tr>
+<td><img src="docs/before.jpg" alt="Before" width="100%"></td>
+<td><img src="docs/after.jpg" alt="After" width="100%"></td>
+</tr>
+</table>
 
 **Another cutscene (32:9, with the fix)**
 
