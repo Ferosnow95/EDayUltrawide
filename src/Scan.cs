@@ -256,7 +256,7 @@ namespace EDayUltrawide
     public static class HorPlus
     {
         // UCineCameraComponent::GetCameraView(this, DeltaTime, FMinimalViewInfo&) in the Xbox build (RVA 0x1411218);
-        // the prologue matches the Steam mod's validated bytes, the body pins it to the cine camera class.
+        // the body pins it to the cine camera class.
         public static readonly Pattern CineGetView = new Pattern("cine-getview",
             "48 89 5C 24 08 57 48 83 EC 30 C5 F8 29 74 24 20 C5 F8 28 F1 49 8B F8 48 8B D9 E8 ?? ?? ?? ?? 4C 8B C7 48 8B CB C5 F8 28 CE E8 ?? ?? ?? ?? 48 8B 03 4C 8B C7 C5 F8 28 CE 48 8B CB FF 90 ?? ?? ?? ?? F6 83 ?? ?? 00 00 01");
 

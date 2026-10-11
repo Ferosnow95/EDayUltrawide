@@ -1,6 +1,4 @@
-// EDayUltrawide - 32:9 / ultrawide cutscene fix for Gears of War: E-Day (Xbox app / Game Pass and Steam builds).
-// Independent implementation. Technique credit: Killswitch's "32x9 Cutscenes and Gameplay FOV Adjuster" (Nexus #19),
-// which showed that the cinematic aspect cap is a single float constant.
+// EDayUltrawide - 32:9 / ultrawide cutscene and FOV fix for Gears of War: E-Day (Xbox app / Game Pass build).
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

@@ -1,111 +1,103 @@
-# EDayUltrawide
+# Gears of War: E-Day (Ultrawide & FOV Fix) — Xbox Game Pass
 
-Ultrawide (32:9) cutscene fix and independent cutscene / gameplay FOV app for Gears of War: E-Day (Xbox app / Game Pass build, also recognises Steam). Single-player / offline only.
+[![Latest release](https://img.shields.io/github/v/release/Ferosnow95/EDayUltrawide)](https://github.com/Ferosnow95/EDayUltrawide/releases)
+[![Downloads](https://img.shields.io/github/downloads/Ferosnow95/EDayUltrawide/total.svg)](https://github.com/Ferosnow95/EDayUltrawide/releases)
 
-Build: `cd src && dotnet build -c Release` (net48, WinExe). Tests: `cd tests && dotnet run -c Release`.
+A plain and simple mod that fixes Gears of War: E-Day on super-ultrawide screens (32:9 and anything wider than 21:9). It removes the black side bars in cutscenes, fixes the cropped / cut-off picture you get once the bars are gone, and adds separate FOV sliders for cutscenes and gameplay.
 
+**This is for the Xbox app / Game Pass (PC) version only. It is not for the Steam version.**
+
+Windows only. Single-player / offline only (see [Anti-cheat](#anti-cheat)).
+
+| Before (stock, 32:9) | After (this fix, 32:9) |
+|---|---|
+| ![Before](docs/before.jpg) | ![After](docs/after.jpg) |
+
+## Features
+- **Removes the black bars** in cutscenes on 32:9 and other screens wider than 21:9.
+- **Fixes the cropping:** the cutscene camera keeps the same top-to-bottom view as 16:9 (Hor+), so you see more on the sides and nothing is cut off at the top or bottom. The slight downward tilt that wide screens get is corrected too, so faces and scenes aren't sitting low in the frame.
+- **Separate FOV controls:** one slider for cutscenes (50–150 %, 100 % = the 16:9 framing) and one for gameplay (60–150°, the game's own slider stops at 90). Each one is independent of the other.
+- **Changes apply instantly** while the game runs, and are saved.
+- **Small window app** with Start, install/remove and log buttons, so no `.bat` files or command line.
+- **One-key A/B toggle** (F8) and a log file for troubleshooting.
+
+## Requirements
+- Gears of War: E-Day from the **Xbox app / Game Pass for PC**.
+- Windows 10/11 (.NET Framework 4.8 is built in).
+- In the game: **Graphics settings → Cinematic Ultrawide Support = ON**.
+
+## Install (Xbox Game Pass version)
+1. Download the latest zip from [Releases](https://github.com/Ferosnow95/EDayUltrawide/releases) and extract it.
+2. Copy the extracted files into the game's `WinGDK` folder:
+   `<your Xbox games folder>\Gears of War- E-Day\Content\FairlightConcept\Binaries\WinGDK\`
+   (in the Xbox app: *Gears of War: E-Day* → ⋯ → *Manage* → *Files* → *Browse…* to find the game folder).
+3. Double-click **`EDayUltrawide-InstallHook.exe`** and approve the Windows prompt (it needs administrator rights once, to make the Xbox app start the fix with the game).
+4. Start the game with **Play in the Xbox app**, as normal. The fix window opens minimised in the taskbar: click it to change the FOV. It closes when the game does.
+
+Why the Xbox app has to start it: the Game Pass build only runs when the Xbox app launches it, so the fix is started by the Xbox app and starts the game itself.
+
+To remove it, double-click **`EDayUltrawide-Restore.exe`**. A game update or *Repair* in the Xbox app puts the original launcher back; run `EDayUltrawide-InstallHook.exe` again.
+
+### Online play
+The fix starts the game with anti-cheat off. To play online, hold **Shift** while you press Play (a normal launch, no fix), or tick *Always start online* in the window.
+
+## The window
+| Section | What it does |
+|---|---|
+| **Ultrawide fix on** | Master switch. Off puts the bars and the game's own FOV back. |
+| **Cutscenes** | *Cutscene FOV* 50–150 %: 100 % is the same view as 16:9, higher shows more, lower zooms in. *Keep the 16:9 vertical framing* turns the Hor+ correction on/off. |
+| **Gameplay** | *Override the gameplay FOV* 60–150°. Unticked = the game's own value; it is put back when you untick it or close the game. |
+| **Game** | Start the game, install/remove the launch hook, *Always start online*, open the log. |
+
+Closing the window while the game runs only minimises it (the fix lives in it); it closes with the game. The gameplay camera is found once you are in a level, which takes a few seconds.
+
+## Controls
+| Key | Action |
+|---|---|
+| F8 | Toggle the whole fix on/off (bars back, FOV back to the game's own) |
+| F7 | Write a status line to the log |
+
+## Configuration
+The window edits `EDayUltrawide.ini` (in the `WinGDK` folder); you can also edit it by hand, even while the game runs.
+
+| Setting | Default | What it does |
+|---|---|---|
+| `Enabled` | `1` | `1` = fix on. |
+| `CutsceneHorPlus` | `1` | Keep the 16:9 vertical framing in cutscenes. |
+| `CutsceneFovBasis` | `16:9` | The aspect whose top-to-bottom view is kept. |
+| `CutsceneFovPercent` | `100` | Cutscene FOV, 50–150. |
+| `GameplayFov` | `0` | Gameplay FOV in degrees (60–150). `0` = the game's own. |
+| `ForceAspectRatio` | `0` | `0` = detect from the game window. Or `32:9`, `5120x1440`, `3.5556`. |
+| `Mode` | `Offline` | `Offline` = start with the fix (anti-cheat off). `Online` = normal launch, no fix. |
+| `OnlineKey` | `Shift` | Hold while pressing Play for a one-off online launch. |
+| `ToggleKey` / `StatusKey` | `F8` / `F7` | In-game keys. |
+| `Verbose` | `0` | `1` = more detail in the log. |
+
+## Anti-cheat
+E-Day ships with Easy Anti-Cheat. The fix starts the game with it switched off, so **use it for offline single-player only, and never take the modded game online or into co-op.** The app refuses to touch the game while anti-cheat is running.
+
+## Known issues
+- Pre-rendered videos (if any) stay 16:9.
+- Developed and tested on one PC (32:9, 5120×1440, Xbox app build 1.1.3.0). Reports from 21:9 and 48:9 setups are welcome.
+- The gameplay FOV and the cutscene zoom slider are new in v0.3.0: if the gameplay FOV does nothing, send the log (see below).
+- A game update can move things around. The app finds what it needs by pattern at start-up and says so in the log if it can't, then leaves the game alone.
+
+## Troubleshooting
+The log is `EDayUltrawide.log` next to the exe (the previous session is kept as `EDayUltrawide.prev.log`).
+- *"GDK runtime is not available"*: the game was started outside the Xbox app. Start it with Play in the Xbox app.
+- *"launch hook is not installed"*: a game update or repair restored the launcher. Run `EDayUltrawide-InstallHook.exe` again.
+- *Anti-cheat is active*: an online launch is running. Quit it and press Play without holding Shift.
+- *"Cap not found"*: double-click `EDayUltrawide-Dump.exe` with the game running and attach the log to an issue.
+- Windows SmartScreen may warn about an unsigned exe: *More info → Run anyway*.
+
+## Build from source
 ```
-EDayUltrawide v0.3.0 - ultrawide fix + FOV control app for Gears of War: E-Day
-=====================================================================
-Removes the black side bars in cutscenes on screens wider than 21:9 (32:9, 48:9...).
-Made for the Xbox app / Game Pass build (WinGDK\GoWEDay.exe); also recognises the Steam build.
-
-STATUS: bars fix confirmed in game (Xbox build 1.1.3.0). Cutscene FOV, composition tilt and the new gameplay FOV
-control are tested offline/emulated only - please report how they look.
-
-THE APP (v0.3.0)
-  EDayUltrawide.exe is now a small window app. The Xbox app still starts it when you press Play (it starts the game and
-  shows its window minimised in the taskbar - click it to adjust). Opened by hand it edits the same settings and has a
-  "Start the game" button. Everything saves to EDayUltrawide.ini and applies LIVE while the game runs.
-    Cutscenes  Cutscene FOV 50-150 %: 100 % = same top-to-bottom view as 16:9 (the Hor+ result), higher = wider, lower = tighter.
-               "Keep the 16:9 vertical framing" turns the Hor+ correction itself on/off.
-    Gameplay   "Override the gameplay FOV" 60-150 deg on the game's own FOV-slider scale (the game's slider stops at 90).
-               Unticked = the game's own value; the app puts it back when you untick it or close the game.
-    Game       start the game, install/remove the Xbox launch hook, "Always start online" (Mode=Online), open the log.
-  Closing the window while the game runs only minimises it (the fix lives in that window); it closes with the game.
-  Gameplay FOV is found by scanning the game's memory for the camera manager once you are in a level (takes a few seconds,
-  the log says "Gameplay camera manager at ..."). If that line never appears, report it with EDayUltrawide.log attached.
-
-SINGLE-PLAYER / OFFLINE ONLY
-  The launcher starts the game with Easy Anti-Cheat switched off (same method as the Steam mod),
-  so online play, co-op and multiplayer are unavailable in that session. To play online, close the
-  game and start it normally from the Xbox app. The tool refuses to touch the game if anti-cheat is running.
-
-REQUIREMENTS
-  - Windows 10/11 (.NET Framework 4.8 is built in).
-  - In the game: Graphics settings > "Cinematic Ultrawide Support" = ON.
-
-INSTALL
-  The tool lives next to the game exe:
-    G:\Games\Gears of War- E-Day\Content\FairlightConcept\Binaries\WinGDK\EDayUltrawide.exe
-  and the game's launcher config (Content\MicrosoftGame.config) points at it instead of the
-  anti-cheat launcher start_protected_game.exe. Original saved as
-  Content\MicrosoftGame.config.edayultrawide-original (another copy in the EDayUltrawide folder).
-  Why: the Xbox build only gets its "GDK runtime" when the Xbox app launches it. Started any other way
-  (directly, or even inside its package) it crashes with "GDK runtime is not available".
-
-USE
-  1. Start the game from the Xbox app as usual (Play).
-  2. A minimised "E-Day Ultrawide" console starts the game offline with anti-cheat off, waits for
-     the game's code to unpack, finds the cutscene aspect cap and raises it to your screen's aspect.
-     If the game says anti-cheat did not load, click OK - that is expected.
-  3. The console closes itself when the game exits. Log: EDayUltrawide.log in the WinGDK folder.
-
-ONLINE PLAY
-  - One-off: hold Shift while clicking Play -> normal anti-cheat launch, online works, no fix.
-  - Always: set Mode=Online in EDayUltrawide.ini (WinGDK folder).
-  - Remove the hook completely: double-click EDayUltrawide-Restore.exe (puts the original config
-    back). EDayUltrawide-InstallHook.exe re-installs it. A game update or Xbox app "Repair" also
-    restores the original config - then run InstallHook again.
-
-KEYS (game window focused)
-  F8  toggle the whole fix on/off (bars back, cutscene FOV and gameplay FOV back to the game's own) for an A/B check
-  F7  write a STATUS line to the log
-
-SETTINGS (EDayUltrawide.ini - the window edits it; you can also edit it by hand while the game runs)
-  Enabled, CutsceneHorPlus, CutsceneFovBasis, CutsceneFovPercent (50-150), GameplayFov (0 = game's own, 60-150)
-  ForceAspectRatio   0 = auto from the game window; or 32:9 / 5120x1440 / 3.5556
-  Mode, OnlineKey, ToggleKey, StatusKey, Verbose, AttachTimeoutSeconds
-
-LOG
-  EDayUltrawide.log (previous run: EDayUltrawide.prev.log). Key lines:
-    "Cap found ..."  where the cap lives in your build and how many code sites share it
-    "APPLIED: cinematic cap 2.3889 -> 3.5573 ... read-back OK"   the fix is in memory
-    "Cap was changed by the game"   the game rewrote it (the app re-applies it; report it if it keeps happening)
-
-HOW IT WORKS
-  The game clamps the cinematic view aspect with  min(aspect, 2.388889)  - 3440x1440 is the widest
-  "Cinematic Ultrawide Support" allows. The tool finds that instruction by byte signature at runtime
-  (no hard-coded addresses, so it survives patches and works on the Xbox build), follows it to the
-  constant, and writes your aspect there. Data only - no game code is modified.
-
-CUTSCENE FOV (Hor+, v0.2.0)
-  With the cap raised the game keeps the cutscene camera's horizontal FOV, so 32:9 cropped the top and
-  bottom. The tool swaps one vtable pointer (UCineCameraComponent::GetCameraView, data only) to a small
-  wrapper that runs the game's function and then sets  FOV' = 2*atan(tan(FOV/2) * aspect/basis),
-  so the vertical framing equals the 16:9 framing (CutsceneFovBasis=16:9). F8 turns both off/on.
-  The log shows lines like "Cutscene camera: FOV 40.0 -> 72.1 deg".
-  The game also tilts cutscene framing upward as the screen gets wider (vertical lens shift
-  = (aspect*9/32 - 0.5) x sensor height) to keep faces in a cropped 21:9 frame. With Hor+ the frame is
-  16:9-tall again, so v0.2.1 sets that tilt to what the game uses at the basis aspect (0 for 16:9) by
-  changing its 9/32 constant (one code reference, data only). F8 restores it too.
-
-KNOWN LIMITS
-  - Pre-rendered movies (if any) stay 16:9.
-  - If a gameplay camera were also a cine camera it would widen too; the log line above would then
-    appear outside cutscenes - set CutsceneHorPlus=0 and report it.
-
-TROUBLESHOOTING
-  "GDK runtime is not available": the game was started outside the Xbox app. Launch from the Xbox app.
-  "launch hook is not installed": a game update/repair restored the config - run EDayUltrawide-InstallHook.exe.
-  If the game shows a crash dialog during startup, the tool logs its text and closes it.
-  "Anti-cheat is active": an online launch is running; quit it and press Play without Shift.
-  "Cap not found": double-click EDayUltrawide-Dump.exe with the game running and report it.
-  Windows SmartScreen may warn about an unsigned exe: More info > Run anyway.
-
-CREDITS
-  Cap technique discovered by Killswitch - "32x9 Cutscenes and Gameplay FOV Adjuster"
-  (nexusmods.com/gearsofwareday/mods/19, Steam only). This is an independent implementation;
-  none of that mod's code is included.
-
+cd src
+dotnet build -c Release     # net48, produces EDayUltrawide.exe
+cd ../tests
+dotnet run -c Release       # offline checks
 ```
+Copy `EDayUltrawide.exe` as `EDayUltrawide-InstallHook.exe`, `EDayUltrawide-Restore.exe`, `EDayUltrawide-Dump.exe` and `EDayUltrawide-Probe.exe` too: the file name selects the mode when double-clicked.
+
+## License
+Distributed under the MIT License. See [LICENSE](LICENSE).
