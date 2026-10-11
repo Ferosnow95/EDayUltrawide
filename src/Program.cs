@@ -207,7 +207,7 @@ namespace EDayUltrawide
             return string.Equals(after, want, StringComparison.OrdinalIgnoreCase) ? 0 : 1;
         }
 
-        const string Version = "0.3.0";
+        const string Version = "0.3.1";
         static Thread engineThread;
 
         [STAThread]
@@ -422,7 +422,8 @@ namespace EDayUltrawide
             string exe = LocateGameExe();
             if (exe == null)
                 throw new InvalidOperationException("Could not find GoWEDay.exe. Keep this folder inside the game folder (next to 'Content').");
-            Environment.SetEnvironmentVariable("EOS_USE_ANTICHEATCLIENTNULL", "1");
+            // Set per child process below (psi/spsi); an online hand-off must not inherit it.
+            Environment.SetEnvironmentVariable("EOS_USE_ANTICHEATCLIENTNULL", null);
 
             // The Xbox app / Game Pass build (WinGDK) only gets its GDK runtime when launched by the Xbox app
             // (GameLaunchHelper -> MicrosoftGame.config executable). Started any other way it dies with
@@ -454,6 +455,7 @@ namespace EDayUltrawide
                     string eac = Path.Combine(ContentDir() ?? Path.Combine(BaseDir, @"..\..\.."), OriginalExe);
                     Log.Line("ONLINE launch (" + (held ? cfg.OnlineKey + " held" : "Mode=Online") + "): handing over to " + eac + " - anti-cheat on, no fix.");
                     var on = new ProcessStartInfo(eac, Args(passthrough)) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(eac) };
+                    on.EnvironmentVariables.Remove("EOS_USE_ANTICHEATCLIENTNULL");
                     using (var p = Process.Start(on)) p.WaitForExit();
                     return 0;
                 }

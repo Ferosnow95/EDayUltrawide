@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.3.1 — 2026-10-11
+- **Fixed:** holding Shift (or Mode=Online) now gives a normal online launch with anti-cheat on. The offline anti-cheat switch was leaking into it.
+
 ## v0.3.0 — 2026-10-11
 **Now a window app with separate cutscene and gameplay FOV.**
 - **New:** window with a cutscene FOV slider (50–150 %) and a gameplay FOV override (60–150°), applied live and saved to `EDayUltrawide.ini`.
