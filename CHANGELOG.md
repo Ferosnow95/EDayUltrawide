@@ -1,7 +1,10 @@
 # Changelog
 
-## v0.3.1 — 2026-10-11
-- **Fixed:** holding Shift (or Mode=Online) now gives a normal online launch with anti-cheat on. The offline anti-cheat switch was leaking into it.
+## v0.4.0
+**One exe.** The release is a single `EDayUltrawide.exe`. The window is now in order: install the hook first; the fix, cutscene and gameplay settings stay locked until it is installed.
+- **New:** *Install hook* copies the tool into the game folder and sets the Xbox launch; *Remove hook* restores the original launcher and deletes the tool's files. No more separate InstallHook / Restore / Dump / Probe copies.
+- **New:** the game folder is found automatically from anywhere (*Choose game folder…* if not); settings and the log are kept in the game folder, so the downloaded copy and the installed copy share them.
+- **Fixed (v0.3.1):** holding Shift for an online launch no longer fails with "anti-cheat not loaded".
 
 ## v0.3.0 — 2026-10-11
 **Now a window app with separate cutscene and gameplay FOV.**

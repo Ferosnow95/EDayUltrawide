@@ -15,11 +15,13 @@ namespace EDayUltrawide
         readonly bool launchedByXbox;      // started by the Xbox app: engine runs here, window starts minimised and closes with the game
         bool loading;                       // true while controls are filled from settings (no write-back)
 
-        Label lblStatus, lblDetail, lblCutInfo, lblCutLast, lblGpInfo, lblHook;
+        Label lblStatus, lblDetail, lblCutInfo, lblCutLast, lblGpInfo, lblHook, lblHookHint;
+        Control[] gated;
+        TableLayoutPanel root;
         CheckBox chkEnabled, chkHorPlus, chkGameplay, chkOnline;
         TrackBar trkCut, trkGp;
         NumericUpDown numCut, numGp;
-        Button btnPlay, btnCutReset, btnGpReset, btnHookOn, btnHookOff, btnLog, btnFolder;
+        Button btnPlay, btnCutReset, btnGpReset, btnHookOn, btnHookOff, btnLog, btnFolder, btnGame;
         TextBox txtLog;
         readonly Timer refresh = new Timer { Interval = 400 };
         readonly Timer saveDebounce = new Timer { Interval = 120 };
@@ -36,17 +38,31 @@ namespace EDayUltrawide
             Font = new Font("Segoe UI", 9f);
             AutoScaleMode = AutoScaleMode.Dpi;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(560, 690);
-            MinimumSize = new Size(520, 640);
+            ClientSize = new Size(680, 800);
+            MinimumSize = new Size(640, 700);
             MaximizeBox = false;
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
             Build();
+            FitWidth();
             LoadFromSettings();
             Settings.Changed += OnSettingsChanged;
             refresh.Tick += (s, e) => Refresh_();
             saveDebounce.Tick += (s, e) => { saveDebounce.Stop(); Save(); };
-            Shown += (s, e) => { RefreshHook(); Refresh_(); refresh.Start(); };
+            Shown += (s, e) => { FitWidth(); RefreshHook(); Refresh_(); refresh.Start(); };
             if (launchedByXbox) { WindowState = FormWindowState.Minimized; ShowInTaskbar = true; }
+        }
+
+        /// <summary>The window can never be narrower than its content (any DPI / font scale): width follows the layout's preferred size.</summary>
+        void FitWidth()
+        {
+            try
+            {
+                int need = root.GetPreferredSize(Size.Empty).Width + root.Padding.Horizontal + SystemInformation.VerticalScrollBarWidth + 6;
+                var min = SizeFromClientSize(new Size(need, 600));
+                MinimumSize = new Size(Math.Max(MinimumSize.Width, min.Width), MinimumSize.Height);
+                if (ClientSize.Width < need) ClientSize = new Size(need, ClientSize.Height);
+            }
+            catch { }
         }
 
         protected override bool ShowWithoutActivation { get { return launchedByXbox; } }
@@ -55,8 +71,10 @@ namespace EDayUltrawide
 
         void Build()
         {
-            var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 6, Padding = new Padding(12), AutoScroll = false };
+            root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 7, Padding = new Padding(12), AutoScroll = true };
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));      // status
+            root.RowStyles.Add(new RowStyle(SizeType.AutoSize));      // step 1: hook
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));      // master switch
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));      // cutscenes
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));      // gameplay
@@ -67,16 +85,37 @@ namespace EDayUltrawide
             // status
             var st = new TableLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, ColumnCount = 1 };
             lblStatus = new Label { AutoSize = true, Font = new Font("Segoe UI Semibold", 12f), Text = "Starting...", Margin = new Padding(0, 0, 0, 2) };
-            lblDetail = new Label { AutoSize = true, ForeColor = Dim, Text = "", MaximumSize = new Size(520, 0) };
+            lblDetail = new Label { AutoSize = true, ForeColor = Dim, Text = "", MaximumSize = new Size(560, 0) };
             st.Controls.Add(lblStatus); st.Controls.Add(lblDetail);
             root.Controls.Add(st);
 
-            chkEnabled = new CheckBox { AutoSize = true, Text = "Ultrawide fix on (removes the black bars in cutscenes; F8 in game toggles)", Margin = new Padding(0, 10, 0, 6) };
+            // step 1: install the hook
+            var gh = Group("Step 1 - install the Xbox launch hook (once)");
+            var th = Grid(4);
+            lblHook = new Label { AutoSize = true, Anchor = AnchorStyles.Left, Text = "Xbox launch hook: checking...", Margin = new Padding(0, 8, 8, 0) };
+            th.Controls.Add(lblHook, 0, 0); th.SetColumnSpan(lblHook, 2);
+            btnHookOn = new Button { AutoSize = true, Text = "Install hook" };
+            btnHookOn.Click += (s, e) => HookAsync(true);
+            btnHookOff = new Button { AutoSize = true, Text = "Remove hook" };
+            btnHookOff.Click += (s, e) => HookAsync(false);
+            th.Controls.Add(btnHookOn, 2, 0); th.Controls.Add(btnHookOff, 3, 0);
+            btnGame = new Button { AutoSize = true, Text = "Choose game folder..." };
+            btnGame.Click += (s, e) => ChooseGameFolder();
+            th.Controls.Add(btnGame, 0, 1);
+            lblHookHint = new Label { AutoSize = true, ForeColor = Warn, MaximumSize = new Size(560, 0), Margin = new Padding(0, 6, 0, 0),
+                Text = "The settings below stay locked until the hook is installed: the Game Pass build only runs the fix when the Xbox app starts it." };
+            th.Controls.Add(lblHookHint, 0, 2); th.SetColumnSpan(lblHookHint, 4);
+            gh.Controls.Add(th); root.Controls.Add(gh);
+
+            var g2 = Group("Step 2 - Ultrawide fix");
+            chkEnabled = new CheckBox { AutoSize = true, Text = "Ultrawide fix on (removes the black bars in cutscenes; F8 in game toggles)" };
             chkEnabled.CheckedChanged += (s, e) => Edit(c => c.Enabled = chkEnabled.Checked);
-            root.Controls.Add(chkEnabled);
+            var t2 = Grid(3); // same grid and margins as the other steps, so the checkboxes line up exactly
+            t2.Controls.Add(chkEnabled, 0, 0); t2.SetColumnSpan(chkEnabled, 3);
+            g2.Controls.Add(t2); root.Controls.Add(g2);
 
             // cutscenes
-            var gc = Group("Cutscenes");
+            var gc = Group("Step 3 - Cutscenes");
             var tc = Grid(3);
             chkHorPlus = new CheckBox { AutoSize = true, Text = "Keep the 16:9 vertical framing (Hor+, recommended)" };
             chkHorPlus.CheckedChanged += (s, e) => Edit(c => c.CutsceneHorPlus = chkHorPlus.Checked);
@@ -90,7 +129,7 @@ namespace EDayUltrawide
             var cutRight = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(0, 6, 0, 0) };
             cutRight.Controls.Add(numCut); cutRight.Controls.Add(new Label { AutoSize = true, Text = "%", Margin = new Padding(2, 5, 0, 0) });
             tc.Controls.Add(cutRight, 2, 1);
-            lblCutInfo = new Label { AutoSize = true, ForeColor = Dim, MaximumSize = new Size(500, 0) };
+            lblCutInfo = new Label { AutoSize = true, ForeColor = Dim, MaximumSize = new Size(440, 0) };
             tc.Controls.Add(lblCutInfo, 0, 2); tc.SetColumnSpan(lblCutInfo, 3);
             lblCutLast = new Label { AutoSize = true, ForeColor = Dim, Text = "" };
             tc.Controls.Add(lblCutLast, 0, 3); tc.SetColumnSpan(lblCutLast, 2);
@@ -100,7 +139,7 @@ namespace EDayUltrawide
             gc.Controls.Add(tc); root.Controls.Add(gc);
 
             // gameplay
-            var gg = Group("Gameplay");
+            var gg = Group("Step 4 - Gameplay");
             var tg = Grid(3);
             chkGameplay = new CheckBox { AutoSize = true, Text = "Override the gameplay FOV" };
             chkGameplay.CheckedChanged += (s, e) =>
@@ -124,7 +163,7 @@ namespace EDayUltrawide
             var gpRight = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(0, 6, 0, 0) };
             gpRight.Controls.Add(numGp); gpRight.Controls.Add(new Label { AutoSize = true, Text = "°", Margin = new Padding(2, 5, 0, 0) });
             tg.Controls.Add(gpRight, 2, 1);
-            lblGpInfo = new Label { AutoSize = true, ForeColor = Dim, MaximumSize = new Size(500, 0) };
+            lblGpInfo = new Label { AutoSize = true, ForeColor = Dim, MaximumSize = new Size(440, 0) };
             tg.Controls.Add(lblGpInfo, 0, 2); tg.SetColumnSpan(lblGpInfo, 2);
             btnGpReset = new Button { AutoSize = true, Text = "Use the game's own", Anchor = AnchorStyles.Right };
             btnGpReset.Click += (s, e) => { chkGameplay.Checked = false; };
@@ -132,7 +171,7 @@ namespace EDayUltrawide
             gg.Controls.Add(tg); root.Controls.Add(gg);
 
             // game
-            var gm = Group("Game");
+            var gm = Group("Play");
             var tm = Grid(4);
             btnPlay = new Button { AutoSize = true, Text = "Start the game (Xbox app)", Padding = new Padding(8, 3, 8, 3) };
             btnPlay.Click += (s, e) => Play();
@@ -140,19 +179,13 @@ namespace EDayUltrawide
             chkOnline = new CheckBox { AutoSize = true, Text = "Always start online (anti-cheat on, no fix)", Anchor = AnchorStyles.Left };
             chkOnline.CheckedChanged += (s, e) => Edit(c => c.OnlineMode = chkOnline.Checked);
             tm.Controls.Add(chkOnline, 2, 0); tm.SetColumnSpan(chkOnline, 2);
-            lblHook = new Label { AutoSize = true, Anchor = AnchorStyles.Left, Text = "Xbox launch hook: checking...", Margin = new Padding(0, 8, 8, 0) };
-            tm.Controls.Add(lblHook, 0, 1); tm.SetColumnSpan(lblHook, 2);
-            btnHookOn = new Button { AutoSize = true, Text = "Install hook" };
-            btnHookOn.Click += (s, e) => HookAsync(true);
-            btnHookOff = new Button { AutoSize = true, Text = "Remove hook" };
-            btnHookOff.Click += (s, e) => HookAsync(false);
-            tm.Controls.Add(btnHookOn, 2, 1); tm.Controls.Add(btnHookOff, 3, 1);
             btnLog = new Button { AutoSize = true, Text = "Open log" };
-            btnLog.Click += (s, e) => OpenPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EDayUltrawide.log"));
+            btnLog.Click += (s, e) => OpenPath(Path.Combine(Program.DataDir, "EDayUltrawide.log"));
             btnFolder = new Button { AutoSize = true, Text = "Open folder" };
-            btnFolder.Click += (s, e) => OpenPath(AppDomain.CurrentDomain.BaseDirectory);
-            tm.Controls.Add(btnLog, 2, 2); tm.Controls.Add(btnFolder, 3, 2);
+            btnFolder.Click += (s, e) => OpenPath(Program.DataDir);
+            tm.Controls.Add(btnLog, 2, 1); tm.Controls.Add(btnFolder, 3, 1);
             gm.Controls.Add(tm); root.Controls.Add(gm);
+            gated = new Control[] { g2, gc, gg };
 
             txtLog = new TextBox { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, Dock = DockStyle.Fill, Font = new Font("Consolas", 8.5f), BackColor = SystemColors.Window, Margin = new Padding(0, 8, 0, 0), WordWrap = true };
             root.Controls.Add(txtLog);
@@ -232,7 +265,7 @@ namespace EDayUltrawide
         void Play()
         {
             if (Live.EngineRunning) { return; }
-            if (Program.FindGameRunning() && Live.GameAttached == false && Live.ReadRemote(AppDomain.CurrentDomain.BaseDirectory) != null)
+            if (Program.FindGameRunning() && Live.GameAttached == false && Live.ReadRemote(Program.DataDir) != null)
             {
                 MessageBox.Show(this, "The game is already running with the fix (see its launcher window).", "E-Day Ultrawide", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -248,11 +281,34 @@ namespace EDayUltrawide
             lblHook.Text = "Xbox launch hook: " + (install ? "installing - approve the Windows prompt..." : "removing - approve the Windows prompt...");
             var th = new System.Threading.Thread(() =>
             {
-                try { Program.HookPublic(install); }
-                catch (Exception e) { Log.Line("ERROR: " + e.Message); }
-                try { BeginInvoke((Action)(() => { hookBusy = false; RefreshHook(); })); } catch { }
+                string err = null; bool close = false;
+                try { if (install) err = Program.InstallFromWindow(); else err = Program.RemoveFromWindow(out close); }
+                catch (Exception e) { err = e.Message; Log.Line("ERROR: " + e.Message); }
+                try
+                {
+                    BeginInvoke((Action)(() =>
+                    {
+                        hookBusy = false;
+                        if (err != null) MessageBox.Show(this, err, "E-Day Ultrawide", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        else if (close) { Close(); return; }
+                        else if (install) MessageBox.Show(this, "Installed. Close this window, then press Play in the Xbox app (hold Shift for a normal online launch).\r\n\r\nThe tool now lives in the game folder - you can delete the downloaded copy.", "E-Day Ultrawide", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        else MessageBox.Show(this, "Removed. The Xbox app starts the game normally again.", "E-Day Ultrawide", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        RefreshHook();
+                    }));
+                }
+                catch { }
             }) { IsBackground = true };
             th.Start();
+        }
+
+        void ChooseGameFolder()
+        {
+            using (var d = new FolderBrowserDialog { Description = "Select the game's Content folder (the one that contains MicrosoftGame.config), e.g. ...\\XboxGames\\Gears of War- E-Day\\Content" })
+            {
+                if (d.ShowDialog(this) != DialogResult.OK) return;
+                if (!Program.SetGameFolder(d.SelectedPath)) { MessageBox.Show(this, "That is not the E-Day game folder (no MicrosoftGame.config and FairlightConcept\\Binaries\\WinGDK\\GoWEDay.exe).", "E-Day Ultrawide", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+                RefreshHook();
+            }
         }
 
         void RefreshHook()
@@ -262,9 +318,15 @@ namespace EDayUltrawide
             lblHook.Text = "Xbox launch hook: " + text;
             lblHook.ForeColor = installed ? Good : Dim;
             bool xbox = Program.IsXboxBuild();
+            bool atHome = Program.RunningInstalled;
+            btnGame.Visible = !xbox;
+            bool unlocked = installed || launchedByXbox || Live.EngineRunning;
+            foreach (var c in gated) c.Enabled = unlocked;
+            lblHookHint.Visible = !unlocked;
             btnHookOn.Visible = btnHookOff.Visible = xbox;
-            btnHookOn.Enabled = xbox && !installed && !hookBusy;
-            btnHookOff.Enabled = xbox && installed && !hookBusy;
+            btnHookOn.Text = installed && !atHome ? "Update hook" : "Install hook";
+            btnHookOn.Enabled = xbox && (!installed || !atHome) && !hookBusy;
+            btnHookOff.Enabled = xbox && Program.AnythingInstalled && !hookBusy;
             btnPlay.Text = xbox ? "Start the game (Xbox app)" : "Start the game";
             hookCheckedAt = Stopwatch.GetTimestamp();
         }
@@ -281,7 +343,7 @@ namespace EDayUltrawide
             var ci = CultureInfo.InvariantCulture;
             bool engine = Live.EngineRunning;
             bool running = Program.FindGameRunning();
-            Dictionary<string, string> remote = engine ? null : Live.ReadRemote(AppDomain.CurrentDomain.BaseDirectory);
+            Dictionary<string, string> remote = engine ? null : Live.ReadRemote(Program.DataDir);
             bool attached = engine ? Live.GameAttached : remote != null && remote.ContainsKey("attached") && remote["attached"] == "1";
             bool fix = engine ? Live.FixActive : remote != null && remote.ContainsKey("fix") && remote["fix"] == "1";
 

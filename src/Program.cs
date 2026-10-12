@@ -19,6 +19,8 @@ namespace EDayUltrawide
         public static int TailVersion;
         public static string[] Tail() { lock (tail) return tail.ToArray(); }
 
+        public static string FilePath { get; private set; }
+
         public static void Open(string dir, string name = "EDayUltrawide")
         {
             try
@@ -27,13 +29,13 @@ namespace EDayUltrawide
                 try
                 {
                     if (File.Exists(path)) { if (File.Exists(prev)) File.Delete(prev); File.Move(path, prev); }
-                    file = new StreamWriter(path, false, new UTF8Encoding(false)) { AutoFlush = true };
+                    file = new StreamWriter(path, false, new UTF8Encoding(false)) { AutoFlush = true }; FilePath = path;
                 }
                 catch (IOException)
                 {
                     // Another EDayUltrawide window still holds the log: write a separate one instead of none.
                     string alt = Path.Combine(dir, name + "." + DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture) + ".log");
-                    file = new StreamWriter(alt, false, new UTF8Encoding(false)) { AutoFlush = true };
+                    file = new StreamWriter(alt, false, new UTF8Encoding(false)) { AutoFlush = true }; FilePath = alt;
                     try { Console.WriteLine("(main log busy - writing " + Path.GetFileName(alt) + ")"); } catch { }
                 }
             }
@@ -59,7 +61,7 @@ namespace EDayUltrawide
         public int RipRefs = -1;
     }
 
-    internal static class Program
+    internal static partial class Program
     {
         static readonly string[] GameNames = { "GoWEDay", "GoWEDay-Steam" };
         const string PackageName = "Microsoft.Fairlightbasegame";
@@ -75,8 +77,38 @@ namespace EDayUltrawide
         const string OriginalExe = "start_protected_game.exe";
 
         /// <summary>The game's Content folder (holds MicrosoftGame.config), searched upwards / sideways from this exe.</summary>
+        static string contentOverride;
+
+        /// <summary>Where settings, log and status live: next to the exe when it is the installed copy, otherwise in the game's WinGDK folder (so a copy run from Downloads edits the same settings).</summary>
+        internal static string DataDir
+        {
+            get
+            {
+                try
+                {
+                    string cd = ContentDir();
+                    if (cd == null || IsInstalledLocation() || InPackage(out _)) return BaseDir;
+                    string win = WinGdkOf(cd);
+                    if (!Directory.Exists(win)) return BaseDir;
+                    string probe = Path.Combine(win, ".edayultrawide-write-test");
+                    File.WriteAllText(probe, "x"); File.Delete(probe);
+                    return win;
+                }
+                catch { return BaseDir; }
+            }
+        }
+
+        /// <summary>The window's "Choose game folder" button: accepts the game's Content folder or the folder above it.</summary>
+        internal static bool SetGameFolder(string dir)
+        {
+            foreach (var c in new[] { dir, dir == null ? null : Path.Combine(dir, "Content") })
+                if (IsContentDir(c)) { contentOverride = c.TrimEnd('\\'); return true; }
+            return false;
+        }
+
         static string ContentDir()
         {
+            if (contentOverride != null) return contentOverride;
             string[] c = { BaseDir, Path.Combine(BaseDir, @"..\..\.."), Path.Combine(BaseDir, @"..\Content"), Path.Combine(BaseDir, @"..\..\Content") };
             foreach (var d in c) if (File.Exists(Path.Combine(d, "MicrosoftGame.config"))) return Path.GetFullPath(d);
             return null;
@@ -99,7 +131,7 @@ namespace EDayUltrawide
         }
 
         /// <summary>Points MicrosoftGame.config's executable at this tool (install) or back at the anti-cheat launcher (uninstall).</summary>
-        static int Hook(bool install)
+        static int Hook(bool install, bool elevated = false)
         {
             string dir = ContentDir();
             if (dir == null) throw new InvalidOperationException("MicrosoftGame.config not found (Xbox app build only).");
@@ -118,6 +150,9 @@ namespace EDayUltrawide
             Log.Line("Registered launch target: " + cur + "   (" + key + ")");
             if (!string.Equals(cur, want, StringComparison.OrdinalIgnoreCase))
             {
+                if (elevated) { RegistryHookElevated(install); cur = ReadLaunchTarget(out key); }
+                else
+                {
                 Log.Line("Changing it needs administrator rights - approve the Windows prompt.");
                 try
                 {
@@ -131,6 +166,7 @@ namespace EDayUltrawide
                     return 1;
                 }
                 cur = ReadLaunchTarget(out key);
+                }
             }
             bool ok = string.Equals(cur, want, StringComparison.OrdinalIgnoreCase);
             Log.Line("Registered launch target now: " + cur + (ok ? "  - OK" : "  - NOT CHANGED, see EDayUltrawide.admin.log"));
@@ -207,34 +243,37 @@ namespace EDayUltrawide
             return string.Equals(after, want, StringComparison.OrdinalIgnoreCase) ? 0 : 1;
         }
 
-        const string Version = "0.3.1";
+        const string Version = "0.4.0";
         static Thread engineThread;
 
         [STAThread]
         static int Main(string[] args)
         {
             try { Native.SetProcessDPIAware(); } catch { }
-            // Copies named "...Dump.exe" / "...Restore....exe" run those modes when double-clicked (no .bat needed).
-            string self = Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location).ToLowerInvariant();
-            string[] flags = { "--auto", "--attach", "--dump", "--status", "--install-hook", "--uninstall-hook", "--probe", "--registry-hook" };
+            string[] flags = { "--auto", "--attach", "--dump", "--status", "--install-hook", "--uninstall-hook", "--probe", "--registry-hook", "--do-install", "--do-uninstall" };
             string mode;
             if (args.Length > 0 && flags.Contains(args[0].ToLowerInvariant())) { mode = args[0].ToLowerInvariant(); }
             else
             {
                 passthrough = args; // arguments from the Xbox launcher go to the game
-                mode = self.Contains("dump") ? "--dump" : self.Contains("restore") ? "--uninstall-hook" : self.Contains("installhook") ? "--install-hook" : self.Contains("probe") ? "--probe" : "--auto";
+                mode = "--auto";
             }
             bool gui = mode == "--auto" || mode == "--attach";
-            if (!gui && mode != "--registry-hook")
+            bool setupStep = mode == "--do-install" || mode == "--do-uninstall";
+            if (!gui && mode != "--registry-hook" && !setupStep)
             {
                 // tool modes print to a console window (the exe itself has no console)
                 if (!Native.AttachConsole(-1)) Native.AllocConsole();
                 try { Console.Title = "E-Day Ultrawide"; } catch { }
             }
-            Log.Open(BaseDir, mode == "--registry-hook" ? "EDayUltrawide.admin" : "EDayUltrawide");
-            foreach (var w in Settings.Init(BaseDir)) Log.Line("config: " + w);
+            // Started from anywhere (Downloads, desktop): find the game folder so the window can install the hook and keep its files there.
+            if (!setupStep && mode != "--registry-hook" && ContentDir() == null) { var found = FindContentDirs(); if (found.Count > 0) contentOverride = found[0]; }
+            string setupLog = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "EDayUltrawide");
+            if (setupStep) { try { Directory.CreateDirectory(setupLog); } catch { } Log.Open(setupLog, "EDayUltrawide.setup"); }
+            else Log.Open(DataDir, mode == "--registry-hook" ? "EDayUltrawide.admin" : "EDayUltrawide");
+            if (!setupStep) foreach (var w in Settings.Init(DataDir)) Log.Line("config: " + w);
             Log.Verbose = cfg.Verbose;
-            Log.Line("EDayUltrawide v" + Version + " (" + mode + ")  dir=" + BaseDir);
+            Log.Line("EDayUltrawide v" + Version + " (" + mode + ")  dir=" + BaseDir + (DataDir != BaseDir ? "  data=" + DataDir : ""));
             try { Console.CancelKeyPress += (s, e) => { e.Cancel = true; stopRequested = true; }; } catch { }
 
             try
@@ -242,6 +281,8 @@ namespace EDayUltrawide
                 switch (mode)
                 {
                     case "--auto": return RunGui(false);
+                    case "--do-install": return SetupInstall(args.Length > 1 ? args[1] : null);
+                    case "--do-uninstall": return SetupUninstall(args.Length > 1 ? args[1] : null, args.Contains("--detached"));
                     case "--attach": return RunGui(true);
                     case "--dump": { int r = Dump(args.Length > 1 ? args[1] : Path.Combine(BaseDir, "dump")); PauseIfDoubleClicked(args); return r; }
                     case "--status": return Status();
@@ -294,7 +335,7 @@ namespace EDayUltrawide
                 {
                     Live.GameAttached = false; Live.FixActive = false; Live.CutsceneHookOn = false; Live.GameplayAvailable = false;
                     Live.GameplayObjects = 0; Live.Phase = Live.Error != null ? "Stopped" : "Idle";
-                    Live.Clear(BaseDir);
+                    Live.Clear(DataDir);
                     Live.EngineRunning = false; Live.Exited = true;
                 }
             }) { IsBackground = true, Name = "EDayUltrawide engine" };
@@ -312,6 +353,8 @@ namespace EDayUltrawide
         internal static int RunAutoPublic() { return RunAuto(); }
         internal static int HookPublic(bool install) { return Hook(install); }
         internal static bool IsXboxBuild() { return ContentDir() != null; }
+        internal static bool RunningInstalled { get { return IsInstalledLocation(); } }
+        internal static bool AnythingInstalled { get { string c = ContentDir(); return c != null && Inspect(c).Any; } }
 
         /// <summary>Human text for the launch hook (Xbox app build only) and whether it is fully installed (config + registry).</summary>
         internal static string HookStatus(out bool installed)
@@ -320,12 +363,12 @@ namespace EDayUltrawide
             try
             {
                 string dir = ContentDir();
-                if (dir == null) return "not needed (this is not the Xbox app build)";
+                if (dir == null) return "game folder not found - use Choose game folder";
                 bool inCfg = (LauncherConfig.Current(File.ReadAllText(Path.Combine(dir, "MicrosoftGame.config"))) ?? "").IndexOf("EDayUltrawide", StringComparison.OrdinalIgnoreCase) >= 0;
                 string key; bool inReg = (ReadLaunchTarget(out key) ?? "").IndexOf("EDayUltrawide", StringComparison.OrdinalIgnoreCase) >= 0;
                 installed = inCfg && inReg;
                 if (installed) return "installed";
-                if (inCfg || inReg) return "half installed - press Install hook";
+                if (inCfg || inReg) return "half installed - press Install hook to repair";
                 return "not installed (the Xbox app starts the game normally)";
             }
             catch (Exception e) { return "unknown (" + e.Message + ")"; }
@@ -422,7 +465,7 @@ namespace EDayUltrawide
             string exe = LocateGameExe();
             if (exe == null)
                 throw new InvalidOperationException("Could not find GoWEDay.exe. Keep this folder inside the game folder (next to 'Content').");
-            // Set per child process below (psi/spsi); an online hand-off must not inherit it.
+            // (set per child process below: an online hand-off must NOT inherit it, or anti-cheat stays off)
             Environment.SetEnvironmentVariable("EOS_USE_ANTICHEATCLIENTNULL", null);
 
             // The Xbox app / Game Pass build (WinGDK) only gets its GDK runtime when launched by the Xbox app
@@ -455,7 +498,7 @@ namespace EDayUltrawide
                     string eac = Path.Combine(ContentDir() ?? Path.Combine(BaseDir, @"..\..\.."), OriginalExe);
                     Log.Line("ONLINE launch (" + (held ? cfg.OnlineKey + " held" : "Mode=Online") + "): handing over to " + eac + " - anti-cheat on, no fix.");
                     var on = new ProcessStartInfo(eac, Args(passthrough)) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(eac) };
-                    on.EnvironmentVariables.Remove("EOS_USE_ANTICHEATCLIENTNULL");
+                    on.EnvironmentVariables.Remove("EOS_USE_ANTICHEATCLIENTNULL"); // normal anti-cheat launch
                     using (var p = Process.Start(on)) p.WaitForExit();
                     return 0;
                 }
@@ -897,7 +940,7 @@ namespace EDayUltrawide
                                     if (Math.Abs(want - applied) > 0.002f) { Log.Line("Resolution changed (" + a + ")."); applyCutscenes(); }
                                 }
                             }
-                            Live.Publish(BaseDir);
+                            Live.Publish(DataDir);
                         }
                     }
                     catch (Exception e)
