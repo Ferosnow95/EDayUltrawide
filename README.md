@@ -59,18 +59,6 @@ Closing the window while the game runs only minimises it (the fix lives in it); 
 ## Configuration
 The window edits `EDayUltrawide.ini` (in the `WinGDK` folder); you can also edit it by hand, even while the game runs.
 
-| Setting | Default | What it does |
-|---|---|---|
-| `Enabled` | `1` | `1` = fix on. |
-| `CutsceneHorPlus` | `1` | Keep the 16:9 vertical framing in cutscenes. |
-| `CutsceneFovBasis` | `16:9` | The aspect whose top-to-bottom view is kept. |
-| `CutsceneFovPercent` | `100` | Cutscene FOV, 50–150. |
-| `GameplayFov` | `0` | Gameplay FOV in degrees (60–150). `0` = the game's own. |
-| `ForceAspectRatio` | `0` | `0` = detect from the game window. Or `32:9`, `5120x1440`, `3.5556`. |
-| `Mode` | `Offline` | `Offline` = start with the fix (anti-cheat off). `Online` = normal launch, no fix. |
-| `OnlineKey` | `Shift` | Hold while pressing Play for a one-off online launch. |
-| `ToggleKey` / `StatusKey` | `F8` / `F7` | In-game keys. |
-| `Verbose` | `0` | `1` = more detail in the log. |
 
 ## Anti-cheat
 E-Day ships with Easy Anti-Cheat. The fix starts the game with it switched off, so **use it for offline single-player only, and never take the modded game online or into co-op.** The app refuses to touch the game while anti-cheat is running.
@@ -81,22 +69,6 @@ E-Day ships with Easy Anti-Cheat. The fix starts the game with it switched off, 
 - The gameplay FOV and the cutscene zoom slider are new in v0.3.0: if the gameplay FOV does nothing, send the log (see below).
 - A game update can move things around. The app finds what it needs by pattern at start-up and says so in the log if it can't, then leaves the game alone.
 
-## Troubleshooting
-The log is `EDayUltrawide.log` in the game's `WinGDK` folder (*Open log* in the window) (the previous session is kept as `EDayUltrawide.prev.log`).
-- *"GDK runtime is not available"*: the game was started outside the Xbox app. Start it with Play in the Xbox app.
-- *"launch hook is not installed"*: a game update or repair restored the launcher. Open `EDayUltrawide.exe` and press *Install hook* again.
-- *Anti-cheat is active*: an online launch is running. Quit it and press Play without holding Shift.
-- *"Cap not found"*: attach the log to an issue.
-- Windows SmartScreen may warn about an unsigned exe: *More info → Run anyway*.
-
-## Build from source
-```
-cd src
-dotnet build -c Release     # net48, produces EDayUltrawide.exe
-cd ../tests
-dotnet run -c Release       # offline checks
-```
-`EDayUltrawide.exe` is the whole release: the window, the fix, and its own install/uninstall.
 
 ## License
 Distributed under the MIT License. See [LICENSE](LICENSE).
