@@ -3,14 +3,14 @@
 [![Latest release](https://img.shields.io/github/v/release/Ferosnow95/EDayUltrawide)](https://github.com/Ferosnow95/EDayUltrawide/releases)
 [![Downloads](https://img.shields.io/github/downloads/Ferosnow95/EDayUltrawide/total.svg)](https://github.com/Ferosnow95/EDayUltrawide/releases)
 
-A plain and simple mod that fixes Gears of War: E-Day on super-ultrawide screens (32:9 and anything wider than 21:9). It removes the black side bars in cutscenes, fixes the cropped / cut-off picture you get once the bars are gone, and adds separate FOV sliders for cutscenes and gameplay.
+A plain and simple mod that fixes Gears of War: E-Day on super-ultrawide screens (32:9 and anything wider than 21:9). It removes the black side bars in cutscenes, fixes the Vert- (vertical FOV) cropping in cutscenes so the picture is no longer cut off at the top and bottom, and adds separate FOV sliders for cutscenes and gameplay.
 
 **This is for the Xbox app / Game Pass (PC) version only. It is not for the Steam version.**
 
 Windows only. Single-player / offline only (see [Anti-cheat](#anti-cheat)).
 
 ## Screenshots (32:9, 5120x1440, with the fix)
-Cutscenes filling the whole screen: no black bars at the sides, and nothing cropped at the top or bottom.
+Cutscenes filling the whole screen: no black bars at the sides, and the Vert- cropping is fixed so nothing is cut off at the top or bottom.
 
 ![Cutscene at 32:9 with the fix](docs/fix-1.jpg)
 
@@ -20,7 +20,7 @@ Cutscenes filling the whole screen: no black bars at the sides, and nothing crop
 
 ## Features
 - **Removes the black bars** in cutscenes on 32:9 and other screens wider than 21:9.
-- **Fixes the cropping:** the cutscene camera keeps the same top-to-bottom view as 16:9 (Hor+), so you see more on the sides and nothing is cut off at the top or bottom. The slight downward tilt that wide screens get is corrected too, so faces and scenes aren't sitting low in the frame.
+- **Fixes Vert- in cutscenes:** the cutscene camera keeps the same top-to-bottom view as 16:9 (Hor+), so you see more on the sides and nothing is cut off at the top or bottom. The slight downward tilt that wide screens get is corrected too, so faces and scenes aren't sitting low in the frame.
 - **Separate FOV controls:** one slider for cutscenes (50–150 %, 100 % = the 16:9 framing) and one for gameplay (60–150°, the game's own slider stops at 90). Each one is independent of the other.
 - **Changes apply instantly** while the game runs, and are saved.
 - **Small window app** with Start, install/remove and log buttons, so no `.bat` files or command line.
