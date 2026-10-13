@@ -12,7 +12,7 @@ Windows only. Single-player / offline only (see [Anti-cheat](#anti-cheat)).
 ## Screenshots (32:9, 5120x1440, with the fix)
 Cutscenes filling the whole screen: no black bars at the sides, and the Vert- cropping is fixed so nothing is cut off at the top or bottom.
 
-![Cutscene at 32:9 with the fix](docs/fix-1.jpg)
+![Cutscene at 32:9 with the fix](docs/fix-1.jpg?v=2)
 
 ![Cutscene at 32:9 with the fix](docs/fix-2.jpg)
 
