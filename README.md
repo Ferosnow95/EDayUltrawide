@@ -9,9 +9,14 @@ A plain and simple mod that fixes Gears of War: E-Day on super-ultrawide screens
 
 Windows only. Single-player / offline only (see [Anti-cheat](#anti-cheat)).
 
-| Before (stock, 32:9) | After (this fix, 32:9) |
-|---|---|
-| ![Before](docs/before.jpg) | ![After](docs/after.jpg) |
+## Screenshots (32:9, 5120x1440, with the fix)
+Cutscenes filling the whole screen: no black bars at the sides, and nothing cropped at the top or bottom.
+
+![Cutscene at 32:9 with the fix](docs/fix-1.jpg)
+
+![Cutscene at 32:9 with the fix](docs/fix-2.jpg)
+
+![Cutscene at 32:9 with the fix](docs/fix-3.jpg)
 
 ## Features
 - **Removes the black bars** in cutscenes on 32:9 and other screens wider than 21:9.
