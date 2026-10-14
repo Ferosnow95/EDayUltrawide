@@ -243,7 +243,7 @@ namespace EDayUltrawide
             return string.Equals(after, want, StringComparison.OrdinalIgnoreCase) ? 0 : 1;
         }
 
-        const string Version = "0.4.0";
+        const string Version = "0.4.1";
         static Thread engineThread;
 
         [STAThread]

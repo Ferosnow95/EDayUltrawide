@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.1
+**Works with the game's 1.2.0.0 update.**
+- **Fixed:** gameplay FOV did nothing after the 1.2.0.0 update ("gameplay FOV setter: 0 matches" in the log). The update moved the FOV multiplier inside the camera; the fix now reads the field offsets from the game's own code, so future moves are picked up automatically.
+- Cutscene fix (black bars, Hor+, tilt) unchanged; confirmed working on 1.2.0.0.
+- After a game update, press *Install hook* again (updates restore the original launcher).
+
 ## v0.4.0
 **One exe.** The release is a single `EDayUltrawide.exe`. The window is now in order: install the hook first; the fix, cutscene and gameplay settings stay locked until it is installed.
 - **New:** *Install hook* copies the tool into the game folder and sets the Xbox launch; *Remove hook* restores the original launcher and deletes the tool's files. No more separate InstallHook / Restore / Dump / Probe copies.

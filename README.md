@@ -70,7 +70,7 @@ E-Day ships with Easy Anti-Cheat. The fix starts the game with it switched off, 
 
 ## Known issues
 - Pre-rendered videos (if any) stay 16:9.
-- Developed and tested on one PC (32:9, 5120×1440, Xbox app build 1.1.3.0). Reports from 21:9 and 48:9 setups are welcome.
+- Developed and tested on one PC (32:9, 5120×1440, Xbox app builds 1.1.3.0 and 1.2.0.0). Reports from 21:9 and 48:9 setups are welcome.
 - The gameplay FOV and the cutscene zoom slider are new in v0.3.0: if the gameplay FOV does nothing, Please DM me directly with the logs
 - A game update can move things around. The app finds what it needs by pattern at start-up and says so in the log if it can't, then leaves the game alone.
 

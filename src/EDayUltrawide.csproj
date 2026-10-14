@@ -6,7 +6,7 @@
     <LangVersion>7.3</LangVersion>
     <AssemblyName>EDayUltrawide</AssemblyName>
     <RootNamespace>EDayUltrawide</RootNamespace>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <Product>EDayUltrawide</Product>
     <Description>Ultrawide cutscene fix for Gears of War: E-Day</Description>
     <ApplicationManifest>app.manifest</ApplicationManifest>
