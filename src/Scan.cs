@@ -399,12 +399,27 @@ namespace EDayUltrawide
     /// <summary>Gameplay camera manager: FOV = base FOV (+0x340) x multiplier (+0x5EA8); the game's FOV slider sets the multiplier.</summary>
     public static class GameplayScan
     {
-        public const int BaseOff = 0x340, MultOff = 0x5EA8, Span = 0x5EAC;
+        // Field offsets inside the camera manager. They move between game builds, so they are read from the setter's own
+        // instructions (UseOffsetsFrom); the values here are the 1.1.3.0 defaults.
+        public static int BaseOff = 0x340, MultOff = 0x5EA8;
+        public static int Span { get { return Math.Max(BaseOff, MultOff) + 4; } }
         public const float StrictMin = 59.99f, StrictMax = 90.01f; // the game's own slider range (60-90)
 
         // vmin/vmax clamp of the slider value, divide by base FOV, store multiplier, ret  (virtual setter)
         public static readonly Pattern Setter = new Pattern("gameplay-fov-setter",
-            "C5 F2 5D 05 ?? ?? ?? ?? C5 FA 5F 05 ?? ?? ?? ?? C5 FA 5E 89 40 03 00 00 C5 FA 11 89 A8 5E 00 00 C3");
+            "C5 F2 5D 05 ?? ?? ?? ?? C5 FA 5F 05 ?? ?? ?? ?? C5 FA 5E 89 ?? ?? ?? ?? C5 FA 11 89 ?? ?? ?? ?? C3");
+        const int SetterBaseDisp = 20, SetterMultDisp = 28;
+
+        /// <summary>Takes the base-FOV and multiplier offsets from the matched setter bytes. False if they look wrong.</summary>
+        public static bool UseOffsetsFrom(byte[] setter, out string why)
+        {
+            why = null;
+            int b = BitConverter.ToInt32(setter, SetterBaseDisp), m = BitConverter.ToInt32(setter, SetterMultDisp);
+            if (b <= 0 || m <= 0 || b > 0x20000 || m > 0x20000 || b == m || (b & 3) != 0 || (m & 3) != 0)
+            { why = "gameplay FOV setter offsets look wrong (base 0x" + b.ToString("X") + ", multiplier 0x" + m.ToString("X") + ")"; return false; }
+            BaseOff = b; MultOff = m;
+            return true;
+        }
 
         public static bool PlausibleBase(float b) { return b >= 30f && b <= 150f; }
         public static bool PlausibleMult(float m) { return m >= 0.25f && m <= 5f; }

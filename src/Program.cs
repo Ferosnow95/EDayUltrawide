@@ -804,7 +804,7 @@ namespace EDayUltrawide
                     string gw;
                     gp = GameplayFov.Locate(m, out gw);
                     if (gp == null) Log.Line("Gameplay FOV control unavailable: " + gw + ".");
-                    else Log.Line("Gameplay FOV setter found: RVA 0x" + (gp.Setter - m.ModuleBase).ToString("X") + ", vtable slot RVA 0x" + (gp.Slot - m.ModuleBase).ToString("X") + ".");
+                    else Log.Line("Gameplay FOV setter found: RVA 0x" + (gp.Setter - m.ModuleBase).ToString("X") + ", vtable slot RVA 0x" + (gp.Slot - m.ModuleBase).ToString("X") + ", fields base +0x" + GameplayScan.BaseOff.ToString("X") + " / multiplier +0x" + GameplayScan.MultOff.ToString("X") + ".");
                 }
                 catch (Exception e) { Log.Line("Gameplay FOV setup failed: " + e.Message); gp = null; }
                 Live.GameplayAvailable = gp != null;

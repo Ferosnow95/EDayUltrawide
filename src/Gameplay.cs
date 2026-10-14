@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 namespace EDayUltrawide
 {
     /// <summary>
-    /// The gameplay camera manager stores base FOV (+0x340) and a multiplier (+0x5EA8); the final FOV is base x multiplier and the in-game
+    /// The gameplay camera manager stores base FOV (+0x340) and a multiplier (+0x5EA8 in 1.1.3.0, +0x5F18 in 1.2.0.0); the final FOV is base x multiplier and the in-game
     /// FOV slider (60-90) just sets the multiplier through a virtual setter. This finds the live manager object(s) in the heap and keeps the
     /// multiplier at desired/base. 0 = leave the game's own value. The object is found by its vtable (derived from the setter's vtable slot)
-    /// plus plausibility of the two floats, so nothing is hard-coded to one build.
+    /// plus plausibility of the two floats; the two field offsets are read from the setter itself, so nothing is hard-coded to one build.
     /// </summary>
     internal sealed class GameplayFov
     {
@@ -48,6 +48,7 @@ namespace EDayUltrawide
                 foreach (int i in GameplayScan.Setter.FindAll(buf, len, maxStart)) fns.Add(addr + i);
             });
             if (fns.Count != 1) { why = "gameplay FOV setter: " + fns.Count + " matches (need exactly 1)"; return null; }
+            if (!GameplayScan.UseOffsetsFrom(m.Read(fns[0], GameplayScan.Setter.Length), out why)) return null;
             var slots = new List<long>();
             m.ForEachChunk(r => !Native.Executable(r.Protect), (buf, len, maxStart, addr) => slots.AddRange(HorPlus.FindQword(buf, len, maxStart, addr, fns[0])));
             if (slots.Count != 1) { why = "gameplay FOV setter vtable slot: " + slots.Count + " pointers (need exactly 1)"; return null; }
