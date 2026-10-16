@@ -77,3 +77,4 @@ E-Day ships with Easy Anti-Cheat. The fix starts the game with it switched off, 
 
 ## License
 Distributed under the MIT License. See [LICENSE](LICENSE).
+AI LLM was used to moderate and help with the solution for this fix. 
